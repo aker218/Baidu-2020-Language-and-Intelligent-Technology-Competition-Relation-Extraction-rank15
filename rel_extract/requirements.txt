@@ -1,0 +1,16 @@
+torchtext==0.5.0
+matplotlib==3.1.1
+torch==1.1.0
+pandas==0.25.2
+gensim==3.8.2
+tqdm==4.37.0
+transformers.egg==info
+numpy==1.18.1
+jieba==0.42.1
+pytorch_crf==0.7.2
+joblib==0.14.0
+apex==0.9.10dev
+ipython==7.16.1
+scikit_learn==0.23.1
+torchcrf==1.0.6
+transformers==2.11.0
