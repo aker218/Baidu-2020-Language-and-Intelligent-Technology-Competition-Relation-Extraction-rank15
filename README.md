@@ -2,9 +2,9 @@
 
 比赛链接：https://aistudio.baidu.com/aistudio/competition/detail/31?isFromCcf=true<br>
 结果<br>
-| precision  | recall   | f1     | team member|
-| --------   | -----:   | :----: | :----: |
-| 0.7806       | 0.7587   | 0.7695 | https://github.com/aker218  |
+| precision  | recall   | f1     | team member| rank|
+| --------   | -----:   | :----: | :----: | :----: |
+| 0.7806       | 0.7587   | 0.7695 | https://github.com/aker218  | 15/1392  |
 
 
 ## 主要思路
