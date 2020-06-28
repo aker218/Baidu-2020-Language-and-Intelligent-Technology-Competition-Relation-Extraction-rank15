@@ -480,16 +480,16 @@ def find_subs_obs(token_label_pred,text):
 # In[3]:
 
 
-do_lower_case=True
-max_len=256
-device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# bert_dir="./bert-pytorch-chinese/"
-# vocab="bert-base-chinese-vocab.txt"
+# do_lower_case=True
+# max_len=256
+# device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# # bert_dir="./bert-pytorch-chinese/"
+# # vocab="bert-base-chinese-vocab.txt"
+# # config_file="bert_config.json"
+# bert_dir="./roberta-zh-wwm-pytorch/"
+# vocab="vocab.txt"
 # config_file="bert_config.json"
-bert_dir="./roberta-zh-wwm-pytorch/"
-vocab="vocab.txt"
-config_file="bert_config.json"
-tokenizer=BertTokenizer.from_pretrained(os.path.join(bert_dir,vocab),do_lower_case=do_lower_case)
+# tokenizer=BertTokenizer.from_pretrained(os.path.join(bert_dir,vocab),do_lower_case=do_lower_case)
 
 
 # In[4]:
@@ -497,11 +497,6 @@ tokenizer=BertTokenizer.from_pretrained(os.path.join(bert_dir,vocab),do_lower_ca
 
 text_data=[]
 with open("./dataset/train_data/train_data.json","r") as r:
-    raw_data=r.readlines()
-    for d in raw_data:
-        text_data.append(json.loads(d))
-print(len(text_data))
-with open("./dataset/dev_data/dev_data.json","r") as r:
     raw_data=r.readlines()
     for d in raw_data:
         text_data.append(json.loads(d))
@@ -535,77 +530,7 @@ if not os.path.exists("./dataset/dict.pk"):
 else:
     print("loading dict...")
     special_rels,id2rels,rels2id,id2labels,label2ids=pk.load(open("./dataset/dict.pk","rb"))
-id2reltype=[[] for i in range(len(id2rels))]
-for e in schema:
-    if len(e['object_type'].keys())==1:
-        rel=e["predicate"]
-        ids=rels2id[rel]
-        id2reltype[ids].append(e)
-    else:
-        for key in e['object_type'].keys():
-            rel=e['predicate']+"_"+key
-            ids=rels2id[rel]
-            temp_e=copy.deepcopy(e)
-            poped_keys=[]
-            for k in temp_e['object_type'].keys():
-                if k!=key:
-                    poped_keys.append(k)
-            for k in poped_keys:
-                 temp_e['object_type'].pop(k)
-            id2reltype[ids].append(temp_e)
-id2schema=[e[0] for e in id2reltype]
-id2rel_text=[[] for i in range(len(id2rels))]
-id2rel_rawtext=[[] for i in range(len(id2rels))]
-id2rel_token2text=[[] for i in range(len(id2rels))]
-for rel in range(len(id2rels)):
-    if id2rels[rel].split("_")[0] not in special_rels:
-        cls_text=id2schema[rel]['subject_type']+","+id2schema[rel]['predicate']+","+id2schema[rel]['object_type']['@value']
-    else:
-        cls_text=id2schema[rel]['subject_type']+","+id2schema[rel]['predicate']+","+id2schema[rel]['object_type'][id2rels[rel].split("_")[1]]
-    id2rel_text[rel]=tokenizer.tokenize(cls_text)
-    id2rel_rawtext[rel]=cls_text
-    id2rel_token2text[rel]=index_token(cls_text)[0]
-    assert len(id2rel_token2text[rel])==len(id2rel_text[rel])
-if not os.path.exists("./middle_data/rel_data_postag.pk"):
-    jieba.enable_paddle() 
-    jieba.enable_parallel(8)
-    rel_cut_words=[]
-    rel_cut_tags=[]
-    for idx in tqdm(range(len(id2rel_rawtext))):
-        words = pseg.lcut(id2rel_rawtext[idx],use_paddle=True) #jieba默认模式
-        new_words=[w for w,t in words]
-        new_tags=[t for w,t in words]
-        rel_cut_words.append([idx,new_words])
-        rel_cut_tags.append([idx,new_tags])
-    rel_cut_words=[e[1] for e in sorted(rel_cut_words,key=lambda x:x[0])]
-    rel_cut_tags=[e[1] for e in sorted(rel_cut_tags,key=lambda x:x[0])]
-    rel_data_postag=[]
-    for idx in tqdm(range(len(id2rel_rawtext))):
-        assert len(id2rel_rawtext[idx].strip())==len("".join(rel_cut_words[idx]))
-        indexs=[]
-        cur_length=0
-        for e in rel_cut_words[idx]:
-            indexs.append([cur_length,cur_length+len(e)-1])
-            cur_length+=len(e)
-        pos_label=np.zeros(len(id2rel_rawtext[idx])).astype(np.int8)
-        for i,(b,e) in enumerate(indexs):
-            assert (id2rel_rawtext[idx][b]==rel_cut_words[idx][i][0] or _is_whitespace(id2rel_rawtext[idx].strip()[b])                   or _is_whitespace(rel_cut_words[idx][i][0]))                     and (id2rel_rawtext[idx].strip()[e]==rel_cut_words[idx][i][-1]                          or _is_whitespace(id2rel_rawtext[idx].strip()[e])  or _is_whitespace(rel_cut_words[idx][i][-1]))
-            pos_label[b+1:e+1]=pos2id_BIO['I-'+rel_cut_tags[idx][i]]
-            pos_label[b]=pos2id_BIO['B-'+rel_cut_tags[idx][i]]
-        rel_data_postag.append(pos_label)
-    pk.dump(rel_data_postag,open("./middle_data/rel_data_postag.pk","wb"))
-else:
-    print("loading...")
-    rel_data_postag=pk.load(open("./middle_data/rel_data_postag.pk","rb"))
-special_major_idx=[2,4,22,32,54]
-special_affilate_idx=[[] for i in range(len(id2rels))]
-special_affilate_idx[2]=[5]
-special_affilate_idx[4]=[0]
-special_affilate_idx[22]=[51]
-special_affilate_idx[32]=[8]
-special_affilate_idx[54]=[6,11,14]
-special_pass_idx=[0,5,6,8,11,14,51]
-[(id2rels[e],[id2rels[t] for t in special_affilate_idx[e]]) for e in special_major_idx],[id2rels[e] for e in special_pass_idx]
+
 
 
 # In[5]:
