@@ -14,7 +14,7 @@
 3. 后处理：使用训练集构建知识库对输出结果进行补充校验
 
 ## 运行方法
-打开main.ipynb，按照其内的顺序及指引依次运行即可<br>
+打开main.ipynb，按照其内的顺序及指引依次运行即可，其中model部分使用词向量的block被注释掉，可以直接下载Roberta即可运行，如果想使用词向量结合编码，可以将注释的部分重新放回<br>
 需要自行下载Roberta-wwm-ext及腾讯词向量<br>
 Roberta-wwm-ext: https://github.com/ymcui/Chinese-BERT-wwm<br>
 腾讯词向量: https://ai.tencent.com/ailab/nlp/zh/embedding.html
